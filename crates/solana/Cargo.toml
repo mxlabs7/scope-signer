@@ -1,0 +1,14 @@
+[package]
+name = "scope-solana"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Briques Solana minimales (lecture de messages, adresses dérivées, base58), sans le SDK Solana."
+
+[dependencies]
+curve25519-dalek = "5.0.0"
+sha2 = "0.11.0"
+
+[lints]
+workspace = true

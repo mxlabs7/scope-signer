@@ -1,0 +1,19 @@
+[workspace]
+resolver = "3"
+members = ["crates/protocol", "crates/solana", "crates/pump", "crates/signer", "crates/keytool"]
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.91"
+publish = false
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+
+[workspace.lints.clippy]
+unwrap_used = "deny"
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
+panic = "abort"

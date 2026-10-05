@@ -1,0 +1,27 @@
+{
+  "version": 5,
+  "fee_wallet": "4AUcXrozDughGcZ3maPCieU6hTmcBCofv2R556RAhHTQ",
+  "fee_bps": 100,
+  "jito_tip_accounts": [
+    "96gYZGLnJYVFmbjzopPSU6QiEV5fGqZNyN9nmNhvrZU5",
+    "HFqU5x63VTqvQss8hp11i4wVV8bD44PvwucfZ2bU7gRe",
+    "Cw8CFyM9FkoMi7K7Crf6HNQqf4uEMzpKw6QNghXLvLkY",
+    "ADaUMid9yfUytqMBgopwjb2DTLSokTSzL1zt6iGPaS49",
+    "DfXygSm4jCyNCybVYYK6DwvWqjKee8pbDmJGcLWNDXjh",
+    "ADuUkR4vqLUMWXxW9gh6D6L8pMSawimctcNZ5pGwDcEt",
+    "DttWaMuVvTiduZRnguLF7jNxTgiMBZ1hyAumKUiL2KRL",
+    "3AVi9Tg9Uo68tJfuvoKvqKNWKkC5wPdSSdeBnizKZ6jT"
+  ],
+  "max_priority_lamports": 100000000,
+  "max_tip_lamports": 100000000,
+  "instructions": [
+    {"name": "pump.buy_exact_sol_in", "program": "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P", "discriminator": "38fc74089edfcd5f", "kind": "buy", "user_index": 6, "sol_offset": 8, "token_accounts": [[5, 2, 8]]},
+    {"name": "pump.sell", "program": "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P", "discriminator": "33e685a4017f83ad", "kind": "sell", "user_index": 6, "sol_offset": 16, "token_accounts": [[5, 2, 9]]},
+    {"name": "pumpswap.buy_exact_quote_in", "program": "pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA", "discriminator": "c62e1552b4d9e870", "kind": "buy", "user_index": 1, "sol_offset": 8, "token_accounts": [[5, 3, 11], [6, 4, 12]]},
+    {"name": "pumpswap.sell", "program": "pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA", "discriminator": "33e685a4017f83ad", "kind": "sell", "user_index": 1, "sol_offset": 16, "token_accounts": [[5, 3, 11], [6, 4, 12]]},
+    {"name": "pump.close_user_volume_accumulator", "program": "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P", "discriminator": "f945a4da9667548a", "kind": "maintenance", "user_index": 0, "sol_offset": 0, "token_accounts": []},
+    {"name": "pump.claim_cashback", "program": "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P", "discriminator": "253a237ebe35e4c5", "kind": "maintenance", "user_index": 0, "sol_offset": 0, "token_accounts": []},
+    {"name": "pumpswap.close_user_volume_accumulator", "program": "pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA", "discriminator": "f945a4da9667548a", "kind": "maintenance", "user_index": 0, "sol_offset": 0, "token_accounts": []},
+    {"name": "pumpswap.claim_cashback", "program": "pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA", "discriminator": "253a237ebe35e4c5", "kind": "maintenance", "user_index": 0, "sol_offset": 0, "token_accounts": [[5, 2, 3]]}
+  ]
+}

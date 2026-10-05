@@ -1,0 +1,18 @@
+[package]
+name = "scope-pump"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Instructions pump.fun (courbe), construites comme le SDK officiel."
+
+[dependencies]
+base64 = "0.23.1"
+scope-solana = { path = "../solana" }
+
+[dev-dependencies]
+base64 = "0.23.1"
+serde_json = "1.0.151"
+
+[lints]
+workspace = true
