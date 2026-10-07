@@ -238,6 +238,28 @@ impl Vault {
         Ok(SigningKey::from_bytes(&bytes))
     }
 
+    /// Supprime DÉFINITIVEMENT un wallet de son propriétaire (introuvable pour un autre compte).
+    pub fn delete_wallet(
+        &self,
+        user: &[u8; USER_LEN],
+        pubkey: &[u8; 32],
+    ) -> Result<(), VaultError> {
+        let write = self.db.begin_write().map_err(storage)?;
+        {
+            let mut wallets = write.open_table(WALLETS).map_err(storage)?;
+            let owned = wallets
+                .get(pubkey)
+                .map_err(storage)?
+                .is_some_and(|r| r.value().get(..USER_LEN) == Some(user.as_slice()));
+            if !owned {
+                return Err(VaultError::NotFound);
+            }
+            wallets.remove(pubkey).map_err(storage)?;
+        }
+        write.commit().map_err(storage)?;
+        Ok(())
+    }
+
     /// Clés publiques de tous les wallets d'un utilisateur.
     pub fn wallets_of(&self, user: &[u8; USER_LEN]) -> Result<Vec<[u8; 32]>, VaultError> {
         let read = self.db.begin_read().map_err(storage)?;
@@ -494,6 +516,31 @@ mod tests {
             Err(VaultError::NotFound)
         ));
         assert!(vault.wallets_of(&BOB)?.is_empty());
+        Ok(())
+    }
+
+    #[test]
+    fn suppression_definitive_par_son_seul_proprietaire() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let dir = tmp()?;
+        let path = dir.path().join("v.redb");
+        let vault = Vault::open(&path, key(7))?;
+        let (pubkey, _) = vault.create_wallet(&ALICE)?;
+        // Un autre compte ne peut pas le supprimer.
+        assert!(matches!(
+            vault.delete_wallet(&[9; USER_LEN], &pubkey),
+            Err(VaultError::NotFound)
+        ));
+        assert!(vault.signing_key(&ALICE, &pubkey).is_ok());
+        // Son propriétaire, si : il n'existe plus, même après réouverture.
+        vault.delete_wallet(&ALICE, &pubkey)?;
+        assert!(matches!(
+            vault.signing_key(&ALICE, &pubkey),
+            Err(VaultError::NotFound)
+        ));
+        drop(vault);
+        let vault = Vault::open(&path, key(7))?;
+        assert!(vault.wallets_of(&ALICE)?.is_empty());
         Ok(())
     }
 

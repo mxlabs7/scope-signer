@@ -66,6 +66,14 @@ pub enum Command {
         user_id: String,
         sealed: String,
     },
+    /// Supprime DÉFINITIVEMENT un wallet (coffre, positions suivies), sur preuve.
+    DeleteWallet {
+        id: String,
+        reply: ReplyTo,
+        user_id: String,
+        wallet: String,
+        proof: ProofJson,
+    },
     /// Demande la clé de transport du signer (pour lui sceller un secret).
     TransportKey { id: String, reply: ReplyTo },
     /// Nonce à usage unique émis par le signer, pour construire le défi d'une action sensible.
@@ -331,6 +339,10 @@ pub enum Event {
         reply: ReplyTo,
         pubkey: String,
     },
+    WalletDeleted {
+        id: String,
+        reply: ReplyTo,
+    },
     TransportKey {
         id: String,
         reply: ReplyTo,
@@ -355,7 +367,10 @@ pub enum Event {
         sealed: String,
     },
     /// Action réussie, sans donnée en retour.
-    Done { id: String, reply: ReplyTo },
+    Done {
+        id: String,
+        reply: ReplyTo,
+    },
     /// Résultat d'un trade. `status` : confirmed | failed.
     Trade {
         id: String,
@@ -426,6 +441,7 @@ impl Event {
             | Event::Pong { reply, .. }
             | Event::WalletCreated { reply, .. }
             | Event::WalletImported { reply, .. }
+            | Event::WalletDeleted { reply, .. }
             | Event::TransportKey { reply, .. }
             | Event::Nonce { reply, .. }
             | Event::PasskeyRegistered { reply, .. }

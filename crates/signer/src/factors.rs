@@ -271,6 +271,25 @@ impl Factors {
         }
     }
 
+    /// Valide la suppression d'un wallet : PASSKEY (défi lié à ce wallet) ou CODE D'APPLI. Jamais un code
+    /// de secours.
+    pub fn verify_delete_wallet(
+        &self,
+        vault: &Vault,
+        user: &UserId,
+        wallet: &[u8; 32],
+        proof: &Proof,
+    ) -> Result<(), Failure> {
+        match proof {
+            Proof::Passkey { .. } => self.check(vault, user, proof, |n| {
+                challenge::delete_wallet(user, wallet, n)
+            }),
+            Proof::Totp { code } => self.check_totp(vault, user, code),
+            Proof::Recovery { .. } => Err(Failure::BadProof),
+            Proof::None => Err(Failure::NeedProof),
+        }
+    }
+
     pub fn register_passkey(
         &self,
         vault: &Vault,

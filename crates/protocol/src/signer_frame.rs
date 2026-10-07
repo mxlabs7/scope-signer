@@ -36,6 +36,7 @@ const OP_SIGN_WITHDRAW: u8 = 11;
 const OP_TOTP_SETUP: u8 = 12;
 const OP_TOTP_CONFIRM: u8 = 13;
 const OP_VERIFY_TOTP: u8 = 14;
+const OP_DELETE_WALLET: u8 = 15;
 /// Taille max d'une transaction Solana.
 pub const MAX_TX: usize = 1232;
 
@@ -135,6 +136,12 @@ pub enum Request {
     },
     /// Vérifie un code d'appli (connexion web). Usage unique, anti force brute.
     VerifyTotp { user: UserId, code: String },
+    /// Supprime DÉFINITIVEMENT un wallet du coffre, sur preuve (passkey liée à CE wallet, ou code d'appli).
+    DeleteWallet {
+        user: UserId,
+        wallet: [u8; 32],
+        proof: Proof,
+    },
 }
 
 /// Raisons d'échec renvoyées par le signer.
@@ -382,6 +389,15 @@ impl Request {
                 .raw(user)
                 .var(code.as_bytes())
                 .done(),
+            Request::DeleteWallet {
+                user,
+                wallet,
+                proof,
+            } => Writer::new(OP_DELETE_WALLET)
+                .raw(user)
+                .raw(wallet)
+                .proof(proof)
+                .done(),
         }
     }
 
@@ -494,6 +510,15 @@ impl Request {
                 let code = r.text(MAX_CODE)?;
                 r.end(Request::VerifyTotp { user, code })
             }
+            OP_DELETE_WALLET => {
+                let (user, wallet) = (r.array()?, r.array()?);
+                let proof = r.proof()?;
+                r.end(Request::DeleteWallet {
+                    user,
+                    wallet,
+                    proof,
+                })
+            }
             _ => Err(FrameError::UnknownOp),
         }
     }
@@ -599,7 +624,9 @@ impl Response {
                     let s = r.var(MAX_RECOVERY_SEALED)?;
                     r.end(Response::Sealed(s))
                 }
-                Request::VerifyRecovery { .. } | Request::VerifyTotp { .. } => r.end(Response::Ok),
+                Request::VerifyRecovery { .. }
+                | Request::VerifyTotp { .. }
+                | Request::DeleteWallet { .. } => r.end(Response::Ok),
             },
             _ => Err(FrameError::UnknownOp),
         }
@@ -721,6 +748,14 @@ mod tests {
             Request::VerifyTotp {
                 user: [1; 16],
                 code: "111111".into(),
+            },
+            Request::DeleteWallet {
+                user: [1; 16],
+                wallet: [2; 32],
+                proof: Proof::Passkey {
+                    nonce: [8; 32],
+                    assertion: assertion(),
+                },
             },
         ]
     }

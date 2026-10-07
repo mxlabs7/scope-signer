@@ -13,6 +13,7 @@ pub const ADD_PASSKEY: &str = "add-passkey";
 pub const REGENERATE_RECOVERY: &str = "regenerate-recovery";
 pub const WITHDRAW: &str = "withdraw";
 pub const ADD_TOTP: &str = "add-totp";
+pub const DELETE_WALLET: &str = "delete-wallet";
 
 pub fn challenge(purpose: &str, user: &[u8; 16], params: &[&[u8]], nonce: &[u8; 32]) -> [u8; 32] {
     let mut h = Sha256::new();
@@ -52,6 +53,11 @@ pub fn withdraw(
         &[wallet, to, &lamports.to_be_bytes()],
         nonce,
     )
+}
+
+/// Défi de la suppression d'un wallet : lié à CE wallet.
+pub fn delete_wallet(user: &[u8; 16], wallet: &[u8; 32], nonce: &[u8; 32]) -> [u8; 32] {
+    challenge(DELETE_WALLET, user, &[wallet], nonce)
 }
 
 #[cfg(test)]

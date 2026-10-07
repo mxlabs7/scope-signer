@@ -345,6 +345,29 @@ fn handle(req: Request, ctx: &Ctx) -> Response {
             seal_to,
         } => factors.totp_confirm(vault, user, &code, &seal_to),
         Request::VerifyTotp { user, code } => factors.verify_totp(vault, user, &code),
+        Request::DeleteWallet {
+            user,
+            wallet,
+            proof,
+        } => {
+            // Wallet du compte AVANT la preuve : on ne consomme pas le nonce pour rien.
+            match vault.signing_key(&user, &wallet) {
+                Ok(_) => {}
+                Err(VaultError::NotFound) => return Response::Failed(Failure::NotFound),
+                Err(_) => return Response::Failed(Failure::Internal),
+            }
+            if let Err(f) = factors.verify_delete_wallet(vault, &user, &wallet, &proof) {
+                warn!("REFUS : suppression de wallet sans preuve valide ({f:?})");
+                return Response::Failed(f);
+            }
+            match vault.delete_wallet(&user, &wallet) {
+                Ok(()) => {
+                    info!("wallet supprimé du coffre");
+                    Response::Ok
+                }
+                Err(e) => fail(e),
+            }
+        }
         Request::ImportWallet { user, sealed } => {
             let secret = match vault.transport_secret().map(|t| seal::open(&t, &sealed)) {
                 Ok(Ok(s)) => s,
