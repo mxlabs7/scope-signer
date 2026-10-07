@@ -223,6 +223,8 @@ impl Rules {
         let mut sum = TradeSummary::default();
         let mut budget = crate::budget::Budget::default();
         let mut trades = 0usize;
+        // Fermetures de comptes de tokens du wallet (le SOL du loyer revient au wallet).
+        let mut closes = 0usize;
         let add = |a: u64, b: u64| a.checked_add(b).ok_or(Violation::Overflow);
 
         for ix in &msg.instructions {
@@ -259,7 +261,10 @@ impl Rules {
                     // CloseAccount : le SOL revient au wallet, qui en est le propriétaire.
                     Some(9)
                         if ix.accounts.get(1) == Some(wallet)
-                            && ix.accounts.get(2) == Some(wallet) => {}
+                            && ix.accounts.get(2) == Some(wallet) =>
+                    {
+                        closes += 1;
+                    }
                     _ => return Err(Violation::InstructionNotAllowed("token")),
                 }
             } else if ix.program == self.ata {
@@ -310,7 +315,9 @@ impl Rules {
             }
         }
 
-        if trades == 0 {
+        // Sans trade, une seule chose est permise : fermer des comptes de tokens vides du wallet pour en
+        // récupérer le loyer (page Reclaim). Le SOL revient au wallet ; ni tip, ni fee, ni transfert sortant.
+        if trades == 0 && (closes == 0 || sum.tip > 0 || sum.fee > 0) {
             return Err(Violation::NoTrade);
         }
         if budget.priority_lamports() > self.max_priority {
@@ -736,6 +743,27 @@ mod tests {
     #[test]
     fn refuse_une_transaction_sans_trade() {
         assert_eq!(check(&[transfer(W, k(TIP), 1)], 0), Err(Violation::NoTrade));
+    }
+
+    #[test]
+    fn recuperation_du_loyer_fermetures_seules() {
+        let acc = |b: u8| [b; 32];
+        let close =
+            |a: [u8; 32], dest: [u8; 32]| (k(solana::TOKEN_PROGRAM), vec![a, dest, W], vec![9]);
+        // Fermer des comptes vers le wallet lui-même, sans rien d'autre : accepté.
+        let r = check(&[close(acc(0x41), W), close(acc(0x42), W)], 0);
+        assert!(r.is_ok(), "{r:?}");
+        // Avec un tip ou une fee : refusé (aucun SOL ne doit partir sans trade).
+        assert_eq!(
+            check(&[close(acc(0x41), W), transfer(W, k(TIP), 1)], 0),
+            Err(Violation::NoTrade)
+        );
+        assert_eq!(
+            check(&[close(acc(0x41), W), transfer(W, k(FEE_WALLET), 1)], 0),
+            Err(Violation::NoTrade)
+        );
+        // Le loyer vers quelqu'un d'autre : refusé.
+        assert!(check(&[close(acc(0x41), [0x66; 32])], 0).is_err());
     }
 
     #[test]

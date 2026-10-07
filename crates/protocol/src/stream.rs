@@ -162,6 +162,9 @@ pub enum Command {
         reply: ReplyTo,
         user_id: String,
         wallet: String,
+        /// Fermer aussi les comptes de tokens vides (page Reclaim de la web app). Absent : non.
+        #[serde(default)]
+        accounts: bool,
     },
     /// Prépare un code d'appli (secret généré par le signer, renvoyé scellé pour `seal_to`).
     TotpSetup {
@@ -265,6 +268,9 @@ pub struct ReclaimQuote {
     pub lamports: String,
     /// Raison si la récupération est bloquée pour l'instant (récompenses à réclamer sur pump.fun).
     pub blocked: Option<String>,
+    /// Comptes de tokens vides fermables, et leur loyer total (lamports, en chaîne).
+    pub accounts: u32,
+    pub accounts_lamports: String,
 }
 
 /// Événement émis par le moteur.
